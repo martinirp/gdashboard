@@ -4,7 +4,7 @@
 
 set -e
 
-PORT="${PORT:-8080}"
+PORT="${PORT:-8090}"
 BASE_PATH="${BASE_PATH:-/gdashboard}"
 
 echo "==> Atualizando pacotes..."
@@ -77,6 +77,6 @@ sleep 3
 sv status gdashboard || true
 
 echo
-echo "Pronto! Se o IP publico do aparelho estiver na porta 8080, acesse:"
-echo "  http://SEU-IP-PUBLICO:8080${BASE_PATH:-}"
+echo "Pronto! Se o IP publico do aparelho estiver na porta 8090, acesse:"
+echo "  http://SEU-IP-PUBLICO:8090${BASE_PATH:-}"
 echo "Logs: ~/.termux/services/logs/gdashboard/"

@@ -4,7 +4,7 @@
 
 set -e
 
-PORT="${PORT:-8080}"
+PORT="${PORT:-8090}"
 BASE_PATH="${BASE_PATH:-/gdashboard}"
 NODE_MAJOR="${NODE_MAJOR:-20}"
 

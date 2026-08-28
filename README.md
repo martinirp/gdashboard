@@ -36,10 +36,10 @@ cd gdashboard/api
 npm install
 
 # rodar (ajuste AUTH_PASS!)
-PORT=8080 BASE_PATH=/gdashboard AUTH_USER=admin AUTH_PASS='SUASENHA' node src/index.js
+PORT=8090 BASE_PATH=/gdashboard AUTH_USER=admin AUTH_PASS='SUASENHA' node src/index.js
 ```
 
-Disponível em `http://SEU-IP:8080/gdashboard`.
+Disponível em `http://SEU-IP:8090/gdashboard`.
 
 Para manter rodando em segundo plano e sobreviver a fechamentos:
 
@@ -52,7 +52,7 @@ ou, no modo simples:
 
 ```bash
 mkdir -p ~/bin gdashboard
-nohup bash -c 'cd ~/gdashboard/api && PORT=8080 BASE_PATH=/gdashboard node src/index.js' > ~/gdashboard.log 2>&1 &
+nohup bash -c 'cd ~/gdashboard/api && PORT=8090 BASE_PATH=/gdashboard node src/index.js' > ~/gdashboard.log 2>&1 &
 ```
 
 > Dica: se a instalação do `sqlite3` falhar ao compilar, instale o pacote `build-essential` e rode `npm rebuild sqlite3`.
@@ -64,7 +64,7 @@ O banco `api/database.sqlite` e `node_modules` **não** são versionados (`.giti
 Para adicionar outra guild ao rastreamento:
 
 ```bash
-curl -X POST http://localhost:8080/gdashboard/api/tracking/guild \
+curl -X POST http://localhost:8090/gdashboard/api/tracking/guild \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer SEU_TOKEN" \
   -d '{"guildName":"Nome da Guild"}'
