@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tibia Guild Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-card">
+      <div class="login-logo">
+        <svg width="40" height="40" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="14,2 26,8 26,20 14,26 2,20 2,8" stroke="#00ff88" stroke-width="1.5" fill="none" opacity="0.8"/>
+          <polygon points="14,6 22,10 22,18 14,22 6,18 6,10" stroke="#00ff88" stroke-width="1" fill="rgba(0,255,136,0.05)" opacity="0.6"/>
+          <circle cx="14" cy="14" r="3" fill="#00ff88" opacity="0.9"/>
+        </svg>
+        <span class="login-logo-text">G<span class="logo-accent">DASHBOARD</span></span>
+      </div>
+      <p class="login-sub">ACESSO RESTRITO</p>
+      <input type="text" id="loginUser" class="input-field" placeholder="Usuário" autocomplete="username" />
+      <input type="password" id="loginPass" class="input-field" placeholder="Senha" autocomplete="current-password" />
+      <div class="error-msg hidden" id="loginError"></div>
+      <button class="btn-search" id="btnLogin" onclick="fazerLogin()">ENTRAR</button>
+    </div>
+  </div>
+
+  <div class="stars" id="stars"></div>
+
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="14,2 26,8 26,20 14,26 2,20 2,8" stroke="#00ff88" stroke-width="1.5" fill="none" opacity="0.8"/>
+          <polygon points="14,6 22,10 22,18 14,22 6,18 6,10" stroke="#00ff88" stroke-width="1" fill="rgba(0,255,136,0.05)" opacity="0.6"/>
+          <circle cx="14" cy="14" r="3" fill="#00ff88" opacity="0.9"/>
+        </svg>
+        <span class="logo-text">TIBIA <span class="logo-accent">GUILD</span> DASHBOARD</span>
+      </div>
+      <div class="header-right">
+        <button class="btn-alerts" id="btnLogout" onclick="sairSistema()">SAIR</button>
+        <span class="api-status" id="apiStatus">
+          <span class="status-dot"></span>
+          <span id="apiStatusText">API</span>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <section class="search-section" id="searchSection">
+      <div class="search-container">
+        <h1 class="search-title">GUILD TRACKER</h1>
+        <p class="search-subtitle">Monitore guildas em tempo real</p>
+        <div class="search-form">
+          <div class="input-group">
+            <label class="input-label">MUNDO</label>
+            <input type="text" id="inputWorld" class="input-field" placeholder="ex: Ferobra" autocomplete="off" />
+          </div>
+          <div class="input-group">
+            <label class="input-label">GUILDA</label>
+            <input type="text" id="inputGuild" class="input-field" placeholder="ex: United" autocomplete="off" />
+          </div>
+          <button class="btn-search" id="btnSearch" onclick="buscarGuilda()">
+            <span id="btnText">BUSCAR</span>
+            <svg id="btnIcon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" stroke-width="1.5"/>
+              <line x1="10" y1="10" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <svg id="btnSpinner" class="spinner hidden" width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2" stroke-dasharray="20 18" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="quick-links">
+          <span class="quick-label">Acesso rápido:</span>
+          <button class="quick-btn" onclick="buscarRapido('Ferobra', 'United')">United · Ferobra</button>
+          <button class="quick-btn" onclick="buscarRapido('Antica', 'Berserk')">Berserk · Antica</button>
+        </div>
+        <div class="error-msg hidden" id="errorMsg"></div>
+      </div>
+    </section>
+
+    <section class="results-section hidden" id="resultsSection">
+      <div class="results-header">
+        <div class="results-title-area">
+          <button class="btn-back" onclick="voltarBusca()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <line x1="12" y1="7" x2="2" y2="7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <polyline points="6,3 2,7 6,11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Voltar
+          </button>
+          <div>
+            <h2 class="guild-name" id="guildTitle"></h2>
+            <p class="guild-world" id="guildWorld"></p>
+          </div>
+        </div>
+        <div class="results-stats" id="resultsStats"></div>
+      </div>
+
+      <div class="guild-alert-bar" id="guildAlertBar">
+        <div class="guild-alert-status">
+          <span class="guild-alert-label">⚠ ALERTAS</span>
+          <span class="guild-alert-hint">masslog: detecta X logins dentro de N min</span>
+        </div>
+        <div class="guild-alert-controls">
+          <span class="guild-alert-hint">disparar com</span>
+          <input type="number" id="guildAlertThreshold" class="alert-input threshold" min="0" value="0" />
+          <span class="guild-alert-hint">logins em</span>
+          <input type="number" id="guildAlertInterval" class="alert-input threshold" min="1" value="10" />
+          <span class="guild-alert-hint">min</span>
+          <label class="switch-alert" title="Ativar/desativar alerta">
+            <input type="checkbox" id="guildAlertEnabled" />
+            <span class="slider"></span>
+          </label>
+          <button class="btn-save-alert btn-save-inline" id="btnSaveGuildAlert" onclick="salvarAlertaGuild()">SALVAR</button>
+        </div>
+      </div>
+      <div class="guild-alert-note hidden" id="guildAlertNote"></div>
+
+      <div class="controls-bar">
+        <div class="search-filter-wrap">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:0.4">
+            <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.3"/>
+            <line x1="8.5" y1="8.5" x2="12" y2="12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+          <input type="text" id="filterInput" class="filter-input" placeholder="Filtrar jogador..." oninput="filtrarTabela()" />
+        </div>
+        <div class="status-filters">
+          <button class="status-btn active" id="filterOnline" onclick="setStatusFilter('online')">
+            <span class="dot-online" style="width:6px;height:6px;border-radius:50%;background:var(--online);display:inline-block;margin-right:5px;flex-shrink:0"></span>
+            Online
+          </button>
+          <button class="status-btn" id="filterOffline" onclick="setStatusFilter('offline')">
+            <span class="dot-offline" style="width:6px;height:6px;border-radius:50%;background:var(--offline);display:inline-block;margin-right:5px;flex-shrink:0"></span>
+            Offline
+          </button>
+        </div>
+        <div class="sort-controls">
+          <span class="sort-label">Ordenar:</span>
+          <button class="sort-btn active" id="sortLevel" onclick="ordenarPor('level')">Level</button>
+          <button class="sort-btn" id="sortName" onclick="ordenarPor('name')">Nome</button>
+          <button class="sort-btn" id="sortOnlineBtn" onclick="ordenarPor('online')" style="display:none">Tempo Online</button>
+        </div>
+      </div>
+
+      <div class="voc-filters" id="vocFilters"></div>
+
+      <div class="table-wrap">
+        <table class="guild-table" id="guildTable">
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="pagination" id="pagination"></div>
+    </section>
+
+  </main>
+
+  <div class="toast hidden" id="toast">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <polyline points="2,7 5.5,10.5 12,3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span id="toastMsg"></span>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
