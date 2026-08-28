@@ -574,45 +574,92 @@ let currentGuild = '';
 let lastAlertId = parseInt(localStorage.getItem('lastAlertId') || '0', 10);
 let initializedAlerts = localStorage.getItem('lastAlertId') !== null;
 
+function setAlertMode(tracked) {
+  const elems = ['guildAlertThreshold', 'guildAlertInterval',
+    'cfgThresholdLabel', 'cfgIntervalLabel', 'cfgMinLabel', 'cfgSwitch'];
+  elems.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = tracked ? '' : 'none';
+  });
+
+  const saveBtn = document.getElementById('btnSaveGuildAlert');
+  const trackBtn = document.getElementById('btnTrackGuild');
+  const untrackBtn = document.getElementById('btnUntrackGuild');
+  const note = document.getElementById('guildAlertNote');
+
+  if (tracked) {
+    saveBtn.style.display = '';
+    saveBtn.disabled = false;
+    saveBtn.style.opacity = '';
+    untrackBtn.style.display = '';
+    trackBtn.style.display = 'none';
+    note.classList.add('hidden');
+  } else {
+    saveBtn.style.display = 'none';
+    saveBtn.disabled = true;
+    trackBtn.style.display = '';
+    untrackBtn.style.display = 'none';
+    note.textContent = 'Esta guilda ainda não é rastreada — sem rastreamento, o alerta de masslog não funciona. Clique em RASTREAR GUILDA para ativá-lo.';
+    note.classList.remove('hidden');
+  }
+}
+
 function carregarAlertaGuild(guildName) {
   currentGuild = guildName;
 
   const bar = document.getElementById('guildAlertBar');
-  const note = document.getElementById('guildAlertNote');
   bar.style.display = 'flex';
-  note.classList.add('hidden');
+  setAlertMode(false);
 
   authFetch(`${API_BASE}/api/alerts`)
     .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
     .then(data => {
       const cfg = (data.alerts || []).find(a => a.guild === guildName);
-      const enabled = document.getElementById('guildAlertEnabled');
-      const threshold = document.getElementById('guildAlertThreshold');
-      const interval = document.getElementById('guildAlertInterval');
-      const btn = document.getElementById('btnSaveGuildAlert');
-
       if (!cfg) {
-        note.textContent = 'Guild não rastreada — o alerta só funciona para guildas na lista de rastreamento.';
-        note.classList.remove('hidden');
-        enabled.checked = false;
-        threshold.value = 0;
-        interval.value = 10;
-        btn.disabled = true;
-        btn.style.opacity = '0.45';
+        setAlertMode(false);
         return;
       }
-
-      btn.disabled = false;
-      btn.style.opacity = '';
-      enabled.checked = !!cfg.enabled;
-      threshold.value = cfg.threshold || 0;
-      interval.value = cfg.intervalMinutes || 10;
+      setAlertMode(true);
+      document.getElementById('guildAlertEnabled').checked = !!cfg.enabled;
+      document.getElementById('guildAlertThreshold').value = cfg.threshold || 0;
+      document.getElementById('guildAlertInterval').value = cfg.intervalMinutes || 10;
     })
     .catch(() => {
-      note.textContent = 'Alerta indisponível (API offline?)';
-      note.classList.remove('hidden');
+      document.getElementById('guildAlertNote').textContent = 'Alerta indisponível (API offline?)';
+      document.getElementById('guildAlertNote').classList.remove('hidden');
       atualizarApiStatus(false);
     });
+}
+
+async function rastrearGuild() {
+  if (!currentGuild) return;
+  try {
+    const res = await authFetch(`${API_BASE}/api/tracking/guild`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ guildName: currentGuild })
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    mostrarToast(`Guild ${currentGuild} adicionada ao rastreamento.`);
+    carregarAlertaGuild(currentGuild);
+  } catch (e) {
+    mostrarToast('Falha ao rastrear a guilda.');
+  }
+}
+
+async function pararDeRastrearGuild() {
+  if (!currentGuild) return;
+  if (!confirm(`Parar de rastrear ${currentGuild}? Os alertas de masslog serão desativados.`)) return;
+  try {
+    const res = await authFetch(`${API_BASE}/api/tracking/guild/${encodeURIComponent(currentGuild)}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    mostrarToast(`${currentGuild} removida do rastreamento.`);
+    carregarAlertaGuild(currentGuild);
+  } catch (e) {
+    mostrarToast('Falha ao remover o rastreamento.');
+  }
 }
 
 async function salvarAlertaGuild() {

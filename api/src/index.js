@@ -145,6 +145,23 @@ api.post('/tracking/guild', async (req, res) => {
     }
 });
 
+api.delete('/tracking/guild/:guildName', async (req, res) => {
+    try {
+        const guildName = req.params.guildName;
+        if (!guildName) {
+            return res.status(400).json({ success: false, error: 'guildName is required' });
+        }
+
+        await db.run(`DELETE FROM tracked_guilds WHERE name = ?`, [guildName]);
+        await db.run(`DELETE FROM guild_alerts WHERE guild_name = ?`, [guildName]);
+
+        res.json({ success: true, message: `Guild ${guildName} removed from tracking.` });
+    } catch (error) {
+        console.error('Error removing tracked guild:', error.message);
+        res.status(500).json({ success: false, error: 'Failed to remove guild from tracking list.' });
+    }
+});
+
 api.get('/united', async (req, res) => {
     try {
         const guildName = 'United';
